@@ -1,0 +1,6 @@
+if (NOT PICO_NO_HARDWARE)
+    add_subdirectory(combine)
+    add_subdirectory(transmitUART)
+    add_subdirectory(recieveUART)
+    add_subdirectory(test)
+endif ()
