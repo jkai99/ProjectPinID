@@ -1,104 +1,96 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "hardware/gpio.h"
 #include "hardware/uart.h"
+#include "hardware/i2c.h"
 #include "pico/binary_info.h"
 
-// Constants for UART configuration
-#define BAUD_RATE 115200
+// Constants for UART and I2C configuration
+#define UART_BAUD_RATE 115200
 
-// Define the GPIO pins to be tested
-const uint gp_pins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28};
-
-// Function to test a GPIO pin
-bool test_gp_pin(uint pin) {
-    gpio_init(pin);                     // Initialize the GPIO pin
-    gpio_set_dir(pin, GPIO_OUT);        // Set the pin direction to output
-    gpio_put(pin, 1);                   // Set the pin high (1) 
-    sleep_ms(1000);                     // and wait for 1 second
-    gpio_put(pin, 0);                   // Set the pin low (0)
-
-    // You can add some additional checks here to determine if the pin is working
-    bool is_working = true;             // You should add checks to set this to false if the pin doesn't work
-
-    return is_working;
+// UART setup function
+void setup_uart() {
+    uart_init(uart0, UART_BAUD_RATE);
+    gpio_set_function(0, GPIO_FUNC_UART);  // Use GP0 for UART
+    gpio_set_function(1, GPIO_FUNC_UART);  // Use GP1 for UART
+    uart_set_hw_flow(uart0, false, false); // No hardware flow control
+    uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
 }
 
-// Function to test UART loopback
-void test_uart_loopback() {
-    // Define UART instance (UART0) and associated pins for testing
-    uart_inst_t *uart = uart0;
-    int tx_pin = 0;         // UART0 TX on GPIO 0
-    int rx_pin = 1;         // UART0 RX on GPIO 1
+// State variable to keep track of which task is running
+volatile bool is_uart_task = true;
 
-    // Initialize UART communication with the specified baud rate
-    uart_init(uart, BAUD_RATE);
+void check_uart_on_gp1() {
+    setup_uart();
 
-    // Configure GPIO pins for UART communication
-    gpio_set_function(tx_pin, GPIO_FUNC_UART);
-    gpio_set_function(rx_pin, GPIO_FUNC_UART);
+    while (true) {
+        if (is_uart_task) {
+            // Check for received characters
+            while (uart_is_readable(uart0)) {
+                char receivedChar = uart_getc(uart0);
 
-    bool dataMatched = false;
-
-    while (!dataMatched) {
-        // Check if UART TX is writable
-        if (uart_is_writable(uart)) {
-            // Transmit 'a'
-            char sendChar = 'a';
-            uart_putc(uart, sendChar);
-            printf("UART0 Sent: %c\n", sendChar);
-            printf("PIN 1: Working\n");
-            sleep_ms(2000);
-        }
-
-        // Check for received characters
-        while (uart_is_readable(uart)) {
-            char receivedChar = uart_getc(uart);
-            printf("UART0 Received: %c\n", receivedChar);
-            printf("PIN 2: Working\n");
-            sleep_ms(2000);
-
-            if (receivedChar == 'a') {
-                dataMatched = true; // Data sent and received match, exit the loop
-                break;
+                if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
+                    printf("Received data on UART0: %c\n", receivedChar);
+                    // Add your specific handling code here
+                } else {
+                    printf("Received an unexpected character on UART0.\n");
+                }
             }
+            // Switch to the other task
+            is_uart_task = false;
         }
-        if (dataMatched) {
-        printf("Both Pin 1 and Pin 2 for UART 0 are working!\n");
-    }
     }
 }
 
+bool reserved_addr(uint8_t addr) {
+    return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
+}
+
+void check_i2c_pins() {
+    // Initialize I2C with the default pins
+    i2c_init(i2c_default, 100 * 1000);
+
+    while (true) {
+        if (!is_uart_task) {
+            printf("\nI2C Bus Scan\n");
+            printf("   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
+
+            for (int addr = 0; addr < (1 << 7); ++addr) {
+                if (addr % 16 == 0) {
+                    printf("%02x ", addr);
+                }
+
+                // Perform a 1-byte dummy read from the probe address. If a slave
+                // acknowledges this address, the function returns the number of bytes
+                // transferred. If the address byte is ignored, the function returns
+                // -1.
+
+                // Skip over any reserved addresses.
+                int ret;
+                uint8_t rxdata;
+                if (reserved_addr(addr))
+                    ret = PICO_ERROR_GENERIC;
+                else
+                    ret = i2c_read_blocking(i2c_default, addr, &rxdata, 1, false);
+
+                printf(ret < 0 ? "." : "@");
+                printf(addr % 16 == 15 ? "\n" : "  ");
+            }
+            printf("Done.\n");
+
+            // Switch to the other task
+            is_uart_task = true;
+        }
+    }
+}
 
 int main() {
     stdio_init_all();
 
-    printf("Testing GPIO Pins:\n");
-
-    bool all_pins_working = true;
-
-    for (uint i = 0; i < sizeof(gp_pins) / sizeof(gp_pins[0]); i++) {
-        uint pin = gp_pins[i];
-        printf("GP%d: ", pin);
-        
-        if (test_gp_pin(pin)) {
-            printf("Working\n");
-        } else {
-            printf("Not Working\n");
-            all_pins_working = false;
-        }
+    while (true) {
+        // Both tasks run sequentially in a cooperative manner
+        check_uart_on_gp1();
+        check_i2c_pins();
     }
-    
-    if (all_pins_working) {
-        printf("All GP pins are working\n");
-    }
-
-    printf("Waiting for 10 seconds before testing UART...\n");
-    sleep_ms(10000);
-
-
-    printf("Testing UART Loopback:\n");
-    test_uart_loopback();
 
     return 0;
 }

@@ -7,9 +7,9 @@
 static const uint I2C_BAUDRATE = 100000; // 100 kHz
 
 static struct {
-    uint8_t mem[256];
-    uint8_t mem_address;
-    bool mem_address_written;
+    uint8_t mem[256];                // Memory buffer for received data
+    uint8_t mem_address;             // Current memory address
+    bool mem_address_written;        // Flag to indicate if the memory address is written
 } context;
 
 // Function to handle I2C events for a specific I2C slave address
