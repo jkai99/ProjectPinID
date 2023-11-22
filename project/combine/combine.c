@@ -8,6 +8,8 @@
 // Constants for UART configuration
 #define BAUD_RATE 115200
 
+#define BUF_LEN 128
+
 // Define GPIO pins for buttons
 #define UART_BUTTON 20          // Check for UART
 #define I2C_BUTTON 21           // Check for I2C
@@ -28,13 +30,18 @@ void uart_rx_code() {
         while (uart_is_readable(uart0)) {
             char receivedChar = uart_getc(uart0);
 
-            if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
-                printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
-                // Add your specific handling code for GP1 here
-            } else {
-                printf("Received an unexpected character on GP1 (UART RX pin 1). Likely to be SPI TX.\n");
-            }
+            printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
+
+            // if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
+            //     printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
+            //     // Add your specific handling code for GP1 here
+            // } else {
+            //     printf("Received an unexpected character on GP1 (UART RX pin 1). Likely to be SPI Pin.\n");
+            // }
         }
+
+        // Add a small delay to prevent busy-waiting
+        sleep_ms(10);
     }
 }
 
@@ -67,10 +74,12 @@ void i2c_master_code() {
     printf("Done.\n");
 }
 
+
 // Function to handle SPI communication
 void spi_code() {
     // Enable SPI0 at 1 MHz
     spi_init(spi_default, 1 * 1000000);
+    spi_set_slave(spi_default, true);
 
     gpio_set_function(18, GPIO_FUNC_SPI); // SCK (Clock)
     gpio_set_function(19, GPIO_FUNC_SPI); // SDO0/MISO (Master In Slave Out)
@@ -78,11 +87,19 @@ void spi_code() {
     gpio_set_function(17, GPIO_FUNC_SPI); // CSN (Chip Select)
 
     // We need two buffers, one for the data to send, and one for the data to receive.
-    uint8_t out_buf[1], in_buf[1];
+    // uint8_t out_buf[1], in_buf[1];
+    uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
 
-    // Initialize the buffers to 0.
-    out_buf[0] = 0;
-    in_buf[0] = 0;
+      // Initialize output buffer
+    for (uint8_t i = 0; i < BUF_LEN; ++i)
+    {
+        out_buf[i] = 0;
+        in_buf[i] = 0;
+    }
+
+    // // Initialize the buffers to 0.
+    // out_buf[0] = 0;
+    // in_buf[0] = 0;
 
     for (uint8_t i = 100; ; ++i) {
         printf("Sending data %d to SPI Peripheral\n", i);
@@ -101,7 +118,7 @@ void spi_code() {
         printf("Received data: %d\n", in_buf[0]);
 
         // Sleep for some seconds so you get a chance to read the output.
-        sleep_ms(2 * 1000);
+        // sleep_ms(2 * 1000);
     }
 }
 

@@ -16,36 +16,40 @@ void receive_on_gp1() {
         // Check for received characters
         while (uart_is_readable(uart0)) {
             char receivedChar = uart_getc(uart0);
+
+            printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
             
-            if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
-                printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
-                // Add your specific handling code for GP1 here
-            } else {
-                printf("Received an unexpected character on GP1 (UART RX pin 1). Likely to be SPI TX.\n");
-            }
+            // if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
+            //     printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
+            //     // Add your specific handling code for GP1 here
+            // } else {
+            //     printf("Received an unexpected character on GP1 (UART RX pin 1). Likely to be SPI TX.\n");
+            // }
         }
     }
 }
 
 // Function to receive data on GP5 for UART1
-// void receive_on_gp5() {
-//     uart_init(uart1, BAUD_RATE);
-//     gpio_set_function(5, GPIO_FUNC_UART);  // Configure GP5 for UART
+void receive_on_gp5() {
+    uart_init(uart1, BAUD_RATE);
+    gpio_set_function(5, GPIO_FUNC_UART);  // Configure GP5 for UART
 
-//     while (true) {
-//         // Check for received characters
-//         while (uart_is_readable(uart1)) {
-//             char receivedChar = uart_getc(uart1);
+    while (true) {
+        // Check for received characters
+        while (uart_is_readable(uart1)) {
+            char receivedChar = uart_getc(uart1);
+
+            printf("Received data on GP5 (UART1 RX pin 5): %c\n", receivedChar);
             
-//             if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
-//                 printf("Received data on GP5 (UART1 RX pin 5): %c\n", receivedChar);
-//                 // Add your specific handling code for GP5 here
-//             } else {
-//                 printf("Received an unexpected character on GP5 (UART1 RX pin 5). Likely to be SPI TX.\n");
-//             }
-//         }
-//     }
-// }
+            // if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
+            //     printf("Received data on GP5 (UART1 RX pin 5): %c\n", receivedChar);
+            //     // Add your specific handling code for GP5 here
+            // } else {
+            //     printf("Received an unexpected character on GP5 (UART1 RX pin 5). Likely to be SPI TX.\n");
+            // }
+        }
+    }
+}
 
 int main() {
     stdio_init_all();
