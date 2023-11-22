@@ -3,6 +3,7 @@
 #include "hardware/uart.h"
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
+#include "hardware/spi.h"
 
 // Constants for UART configuration
 #define BAUD_RATE 115200
@@ -10,6 +11,7 @@
 // Define GPIO pins for buttons
 #define UART_BUTTON 20          // Check for UART
 #define I2C_BUTTON 21           // Check for I2C
+#define SPI_BUTTON 22           // check for SPI
 
 // Function to check for button press
 bool is_button_pressed(int pin) {
@@ -65,6 +67,44 @@ void i2c_master_code() {
     printf("Done.\n");
 }
 
+// Function to handle SPI communication
+void spi_code() {
+    // Enable SPI0 at 1 MHz
+    spi_init(spi_default, 1 * 1000000);
+
+    gpio_set_function(18, GPIO_FUNC_SPI); // SCK (Clock)
+    gpio_set_function(19, GPIO_FUNC_SPI); // SDO0/MISO (Master In Slave Out)
+    gpio_set_function(16, GPIO_FUNC_SPI); // SDI0/MOSI (Master Out Slave In)
+    gpio_set_function(17, GPIO_FUNC_SPI); // CSN (Chip Select)
+
+    // We need two buffers, one for the data to send, and one for the data to receive.
+    uint8_t out_buf[1], in_buf[1];
+
+    // Initialize the buffers to 0.
+    out_buf[0] = 0;
+    in_buf[0] = 0;
+
+    for (uint8_t i = 100; ; ++i) {
+        printf("Sending data %d to SPI Peripheral\n", i);
+        out_buf[0] = i;
+
+        // Write the output buffer to MOSI
+        spi_write_blocking(spi_default, out_buf, 1);
+
+        // Wait for some time to allow the slave to respond
+        sleep_ms(100);
+
+        // Read from MISO to the input buffer
+        spi_read_blocking(spi_default, 0, in_buf, 1);
+
+        // Print received data
+        printf("Received data: %d\n", in_buf[0]);
+
+        // Sleep for some seconds so you get a chance to read the output.
+        sleep_ms(2 * 1000);
+    }
+}
+
 int main() {
     // Set up UART
     stdio_init_all();
@@ -75,6 +115,9 @@ int main() {
 
     gpio_set_dir(I2C_BUTTON, GPIO_IN);
     gpio_pull_down(I2C_BUTTON);
+
+    gpio_set_dir(SPI_BUTTON, GPIO_IN);
+    gpio_pull_down(SPI_BUTTON);
 
     bool i2cInitialized = false;
 
@@ -109,6 +152,14 @@ int main() {
 
 
             i2c_master_code();
+            // You might want to debounce the button press here
+            sleep_ms(100);
+        }
+
+        // Check if SPI button is pressed
+        if (is_button_pressed(SPI_BUTTON)) {
+            printf("Start checking for SPI pins\n");
+            spi_code();
             // You might want to debounce the button press here
             sleep_ms(100);
         }
