@@ -30,11 +30,16 @@ int main() {
   // Enable SPI0 at 1 MHz
   spi_init(spi_default, 1 * 1000000);
 
-  // Assign SPI functions to the default SPI pins
-  gpio_set_function(PICO_DEFAULT_SPI_RX_PIN, GPIO_FUNC_SPI);
-  gpio_set_function(PICO_DEFAULT_SPI_SCK_PIN, GPIO_FUNC_SPI);
-  gpio_set_function(PICO_DEFAULT_SPI_TX_PIN, GPIO_FUNC_SPI);
-  gpio_set_function(PICO_DEFAULT_SPI_CSN_PIN, GPIO_FUNC_SPI);
+  gpio_set_function(18, GPIO_FUNC_SPI); // SCK (Clock)
+  gpio_set_function(19, GPIO_FUNC_SPI); // SDO0/MISO (Master In Slave Out)
+  gpio_set_function(16, GPIO_FUNC_SPI); // SDI0/MOSI (Master Out Slave In)
+  gpio_set_function(17, GPIO_FUNC_SPI); // CSN (Chip Select)
+
+  // Alternate pins 2,3,4,5
+  // gpio_set_function(2, GPIO_FUNC_SPI); // SCK (Clock)
+  // gpio_set_function(3, GPIO_FUNC_SPI); // SDO0/MISO (Master In Slave Out)
+  // gpio_set_function(4, GPIO_FUNC_SPI); // SDI0/MOSI (Master Out Slave In)
+  // gpio_set_function(5, GPIO_FUNC_SPI); // CSN (Chip Select)
 
   // We need two buffers, one for the data to send, and one for the data to receive.
   uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
