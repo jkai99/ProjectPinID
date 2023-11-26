@@ -80,7 +80,7 @@ MISO (Master In Slave Out),
 SCLK (Serial Clock), 
 CS/SS (Chip Select/Slave Select).
 
-			Testing for SPI:
+Testing for SPI:
 After testing UART single pins, and identifying CLK signals, by process of elimination, we can assume that the remaining pins are for SPI and connect SCLK and CS lines first. 
 
 Connect the SPI: Wire up the device's MOSI, and MISO lines to the scratched pico to test for SPI communication.
