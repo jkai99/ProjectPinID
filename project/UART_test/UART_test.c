@@ -6,7 +6,7 @@
 #define BAUD_RATE 115200
 
 // GPIO pins for UART communication
-#define UART_TX_PIN 4  // GP16 for Transmitting
+#define UART_TX_PIN 4  // GP4 for Transmitting
 
 // Function to initialize UART and GPIO pins
 void initialize() {
