@@ -4,9 +4,7 @@
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
-
-// Constants for UART configuration
-// #define BAUD_RATE 115200
+#include <stdbool.h>
 
 #define BUF_LEN 128
 
@@ -17,6 +15,10 @@
 
 // Constants for UART configuration
 #define GPIO_PIN_GP1 1
+
+#define CLOCK_PIN 2
+volatile uint32_t last_rising_edge_time = 0;
+volatile uint32_t time_difference = 0;
 
 // Function to check for button press
 bool is_button_pressed(int pin) {
@@ -76,32 +78,6 @@ uint getNextBaudRate(uint currentBaudRate) {
     return baud_rates[0];
 }
 
-
-// // Function to receive data on GP1 for UART0
-// void uart_rx_code() {
-//     uart_init(uart0, BAUD_RATE);
-//     gpio_set_function(1, GPIO_FUNC_UART);  // Configure GP1 for UART
-
-//     while (true) {
-//         // Check for received characters
-//         while (uart_is_readable(uart0)) {
-//             char receivedChar = uart_getc(uart0);
-
-//             printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
-
-//             // if ((receivedChar >= 32 && receivedChar <= 126) || receivedChar == 10 || receivedChar == 13) {
-//             //     printf("Received data on GP1 (UART RX pin 1): %c\n", receivedChar);
-//             //     // Add your specific handling code for GP1 here
-//             // } else {
-//             //     printf("Received an unexpected character on GP1 (UART RX pin 1). Likely to be SPI Pin.\n");
-//             // }
-//         }
-
-//         // Add a small delay to prevent busy-waiting
-//         sleep_ms(10);
-//     }
-// }
-
 // Function to sweep through all 7-bit I2C addresses
 void i2c_master_code() {
     printf("\nI2C Bus Scan\n");
@@ -111,11 +87,6 @@ void i2c_master_code() {
         if (addr % 16 == 0) {
             printf("%02x ", addr);
         }
-
-        // Perform a 1-byte dummy read from the probe address. If a slave
-        // acknowledges this address, the function returns the number of bytes
-        // transferred. If the address byte is ignored, the function returns
-        // -1.
 
         // Skip over any reserved addresses.
         int ret;
@@ -142,7 +113,7 @@ void spi_code() {
     gpio_set_function(19, GPIO_FUNC_SPI); // SDO0/MISO (Master In Slave Out)
     gpio_set_function(16, GPIO_FUNC_SPI); // SDI0/MOSI (Master Out Slave In)
     gpio_set_function(17, GPIO_FUNC_SPI); // CSN (Chip Select)
-
+    
     // We need two buffers, one for the data to send, and one for the data to receive.
     // uint8_t out_buf[1], in_buf[1];
     uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
@@ -153,10 +124,6 @@ void spi_code() {
         out_buf[i] = 0;
         in_buf[i] = 0;
     }
-
-    // // Initialize the buffers to 0.
-    // out_buf[0] = 0;
-    // in_buf[0] = 0;
 
     for (uint8_t i = 100; ; ++i) {
         printf("Sending data %d to SPI Peripheral\n", i);
@@ -173,11 +140,19 @@ void spi_code() {
 
         // Print received data
         printf("Received data: %d\n", in_buf[0]);
-
-        // Sleep for some seconds so you get a chance to read the output.
-        // sleep_ms(2 * 1000);
     }
 }
+
+// Interrupt Service Routine
+void rising_edge_isr(uint gpio, uint32_t events) {
+    uint32_t current_time = time_us_32();
+    if (last_rising_edge_time != 0) {
+        time_difference = current_time - last_rising_edge_time;
+    }
+    last_rising_edge_time = current_time;
+}
+
+
 
 int main() {
     // Set up UART
@@ -195,17 +170,36 @@ int main() {
 
     bool i2cInitialized = false;
 
+    // Initialize GPIO for clock input
+    gpio_init(CLOCK_PIN);
+    gpio_set_dir(CLOCK_PIN, GPIO_IN);
+    gpio_pull_up(CLOCK_PIN);  // Optional, based on your circuit
+
+    // Attach the ISR to the GPIO pin
+    gpio_set_irq_enabled_with_callback(CLOCK_PIN, GPIO_IRQ_EDGE_RISE, true, &rising_edge_isr);
+
     while (1) {
+
+        if (time_difference != 0) {
+            printf("Time between rising edges: %u us\n", time_difference);
+            time_difference = 0;  // Reset after printing
+        }
+
+        sleep_ms(1000);  // Delay to avoid printing too rapidly
+
+
+
+
         // Check if UART button is pressed
         if (is_button_pressed(UART_BUTTON)) {
             printf("Start checking for UART pins\n");
-            // uart_rx_code();
-            // You might want to debounce the button press here
-            uint initial_baud_rate = 300;  // Start with the first baud rate
+
+            uint initial_baud_rate = 300;           // Start with the first baud rate
             printf("Testing UART0 on GP1:\n");
             receive_on_gpio_uart(0, GPIO_PIN_GP1, initial_baud_rate);
             sleep_ms(100);
         }
+
 
         // Check if I2C button is pressed
         if (is_button_pressed(I2C_BUTTON)) {
@@ -229,7 +223,6 @@ int main() {
 
 
             i2c_master_code();
-            // You might want to debounce the button press here
             sleep_ms(100);
         }
 
@@ -237,11 +230,9 @@ int main() {
         if (is_button_pressed(SPI_BUTTON)) {
             printf("Start checking for SPI pins\n");
             spi_code();
-            // You might want to debounce the button press here
             sleep_ms(100);
         }
 
-        // Other main loop tasks
     }
 
     return 0;
