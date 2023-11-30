@@ -8,6 +8,7 @@ Done by:
 2201594 Danzel Lim
 2201428 Eugene Tan Le Xuan
 
+
 Description of Project Pin Finder Pico 
 
 Project Context
@@ -46,6 +47,22 @@ The GPs indicate the 3 different buttons used to handle the toggling of the comm
 Data Flow Diagram:
 ![](images/DataFlow.png)
 The data flow diagram shows the stages in testing that is broken down in tasks below:	
+
+Required libraries and software:
+stdio.h: This standard input/output library in C provides functions for input and output operations.
+
+pico/stdlib.h: This header file is essential for Pico Standard Library, providing basic functionality for Raspberry Pi Pico projects.
+
+hardware/uart.h: This library is required for UART (Universal Asynchronous Receiver-Transmitter) communication, enabling serial communication.
+
+hardware/i2c.h: This library is crucial to facilitate communication between devices that utilise the I2C communication protocol.
+
+hardware/gpio.h: This library is essential for GPIO (General Purpose Input/Output) operations, allowing interaction with pins and digital signals.
+
+hardware/spi.h: this library is necessary to establish communication between devices using that utilise the SPI communication protocol.
+
+stdbool.h: This standard C library provides support for Boolean data types and operations, enhancing code readability and logical expressions.
+
 
 Tasks:
 Write code to test the pins for response according to their individual pin functions: 
@@ -92,4 +109,51 @@ Attempt Communication: The script sends and receives from the MOSI and MISO line
 Validate the Output: Confirm that the data read back is what is expected. If it is, then the pins support SPI.
 
 Output Results: The Pico Tool should be monitoring on serial monitor and receive data from the scratched pico.
+
+User Guide:
+Before conducting testing, ensure that both the debugger tool board and the scratched, victim board are both connected to the testing computer.
+To activate the testing for each protocol, press the buttons on the Pico that correspond to the desired protocol to be tested:
+
+GP20 - UART
+GP21 - I2C (Only press after wires are connected, to print output to the serial monitor)
+GP22 - SPI 
+
+UART
+To test for UART, connect GP1 on the debugger board to the desired pins for testing. 
+Observe output in the serial monitor.
+The code will conduct testing on different baud rates, and if readable, alphabetic letters are sent and displayed on the serial monitor, UART is present on the pin being tested.
+
+SPI
+To test for SPI, connect GP3 on the debugger board to the desired pins for testing.
+The different outputs observed will lead to several conclusions about the pin being tested.
+No response: Master In Slave Out (MISO)
+Stable Signal: Clock
+Identified from UART testing: Chip Select (During UART testing, when jibberish, unreadable characters are sent, it shows that it is initialised as high, therefore it is a Chip Select pin)
+Unstable Clock Signal: Master Out Slave In (MOSI)
+
+I2C
+To test for I2C, connect GP4 and GP5 to pairs of consecutive pins on the scratched board.
+To produce output, once connected, press GP21 to print output to the serial monitor.
+
+
+Task Allocation
+BRANDON LOO JIA LE
+UART ,I2C / SPI pin identification
+
+EUGENE TAN JUN YU
+I2C / SPI pin identification
+
+NG JING KAI
+UART , I2C / SPI pin identification
+
+DANZEL LIM
+I2C, SPI pin identification
+
+EUGENE TAN LE XUAN
+Floater I2C / SPI pin identification
+
+
+
+
+
 
