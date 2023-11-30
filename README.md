@@ -9,11 +9,12 @@ Done by:
 2201428 Eugene Tan Le Xuan
 
 
-Description of Project Pin Finder Pico 
+## Description of Project Pin Finder Pico 
 
 Project Context
 Pins on the Raspberry Pi Pico has been scratched and only VCC, GND, VBUS are visible. The project team set out to aid people in identifying the pico pins by doing a series of test to determine the communication protocol to allow the pico to be of use instead of replacing the pico.
-Project Objectives
+
+## Project Objectives
 Our project proposal outlines a set of clear objectives:
 
 Development of a pico tool for pin identification using pico_w and pico maker board: 
@@ -48,7 +49,7 @@ Data Flow Diagram:
 ![](images/DataFlow.png)
 The data flow diagram shows the stages in testing that is broken down in tasks below:	
 
-##Required libraries and software:
+## Required libraries and software:
 stdio.h: This standard input/output library in C provides functions for input and output operations.
 
 pico/stdlib.h: This header file is essential for Pico Standard Library, providing basic functionality for Raspberry Pi Pico projects.
@@ -110,7 +111,7 @@ Validate the Output: Confirm that the data read back is what is expected. If it 
 
 Output Results: The Pico Tool should be monitoring on serial monitor and receive data from the scratched pico.
 
-##User Guide:
+## User Guide:
 Before conducting testing, ensure that both the debugger tool board and the scratched, victim board are both connected to the testing computer.
 To activate the testing for each protocol, press the buttons on the Pico that correspond to the desired protocol to be tested:
 
@@ -135,7 +136,7 @@ I2C
 To test for I2C, connect GP4 and GP5 to pairs of consecutive pins on the scratched board.
 To produce output, once connected, press GP21 to print output to the serial monitor.
 
-##Task Allocation
+## Task Allocation
 
 BRANDON LOO JIA LE
 UART ,I2C , SPI, CLK pin identification
