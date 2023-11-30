@@ -38,6 +38,7 @@ Afterwhich, with the determination of CLK signals, testing of 4 pins with the CL
 Pin Identification:
 Testing for Pin identifications. The pins should correspond to certain testing to affirm the tester that the pin could be used for a multitude of purpose such as (I2C, UART, SPI)
 
+## Overview of the project program
 Block Diagram: 
 ![](images/DataBlock.png)
 
