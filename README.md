@@ -135,22 +135,25 @@ I2C
 To test for I2C, connect GP4 and GP5 to pairs of consecutive pins on the scratched board.
 To produce output, once connected, press GP21 to print output to the serial monitor.
 
-
 Task Allocation
+
 BRANDON LOO JIA LE
-UART ,I2C / SPI pin identification
+UART ,I2C , SPI, CLK pin identification
 
 EUGENE TAN JUN YU
-I2C / SPI pin identification
+I2C , SPI , CLK pin identification
 
 NG JING KAI
-UART , I2C / SPI pin identification
+UART , I2C, CLK pin identification
 
 DANZEL LIM
-I2C, SPI pin identification
+I2C, CLK pin identification
 
 EUGENE TAN LE XUAN
-Floater I2C / SPI pin identification
+SPI, CLK pin identification
+
+
+
 
 
 
