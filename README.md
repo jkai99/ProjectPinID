@@ -139,19 +139,19 @@ To produce output, once connected, press GP21 to print output to the serial moni
 
 ## Task Allocation
 
-BRANDON LOO JIA LE
+BRANDON LOO JIA LE:
 UART ,I2C , SPI, CLK pin identification
 
-EUGENE TAN JUN YU
+EUGENE TAN JUN YU:
 I2C , SPI , CLK pin identification
 
-NG JING KAI
+NG JING KAI:
 UART , I2C, CLK pin identification
 
-DANZEL LIM
+DANZEL LIM:
 I2C, CLK pin identification
 
-EUGENE TAN LE XUAN
+EUGENE TAN LE XUAN:
 SPI, CLK pin identification
 
 
